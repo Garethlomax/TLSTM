@@ -27,14 +27,15 @@ class TLSTM_UNIT(nn.Module):
         self.fc_size = fc_size
         self.bias = bias
         self.time_delay_type = time_delay_type
-        self.tanh = nn.tanh
+        self.tanh = torch.tanh
+        self.sig = torch.sigmoid
         # initialise weights for NNs.
         # TODO: why not use linnear layers? 
         # TODO: simplify into fewer layers - can superimpose
         # TODO: reframe to two linnear operations
         
         
-        # TODO: get rid of half of the biases. 
+        # TODO: get rid of half of the biases. - bias included for hidden
         self.Wi = nn.linnear(self.input_size, self.hidden_size, bias = bias)
         self.Ui = nn.linnear(self.hidden_size, self.hidden_size, bias = bias)
         
@@ -64,6 +65,7 @@ class TLSTM_UNIT(nn.Module):
         """ calculates time delay between input samples according to different
         rules"""
         
+        #TODO: do we actually need this to be a tensor??
         if time_delay_type == 'log': 
             #TODO: redo this with pytorch constants ect to make static and faster
             
@@ -94,6 +96,26 @@ class TLSTM_UNIT(nn.Module):
         C_ST = self.tanh(self.W_decomp(cell))
         # discount short term cell memory
         C_ST_dis = T * C_ST
+        
+        # doing longterm mem and finding adjusted prev mem in one step
+        cell = cell - C_ST + C_ST_dis
+        
+        #biases should be included
+        ft = self.sig(self.Wf(x) + self.Uf(hidden)) 
+        it = self.sig(self.Wi(x) + self.Ui(hidden))
+        ot = self.sig(self.Wog(x) + self.Uog(hidden))
+        
+        candidate_cell_mem = self.tanh(self.Wc(x) + self.Wc(hidden))
+        
+        ct = (ft * cell) + (it * candidate_cell_mem)
+        
+        ht = o * self.tanh(ct)
+        
+        
+        
+        
+        
+        
         
         
         
