@@ -29,6 +29,8 @@ class TLSTM_UNIT(nn.Module):
         self.time_delay_type = time_delay_type
         self.tanh = torch.tanh
         self.sig = torch.sigmoid
+        self.dropout = dropout
+        
         # initialise weights for NNs.
         # TODO: why not use linnear layers? 
         # TODO: simplify into fewer layers - can superimpose
@@ -57,7 +59,12 @@ class TLSTM_UNIT(nn.Module):
         
         # TODO: figure out what softmax layer output is
         # self.W_softmax = self.init_weights(fc_dim, output_dim, name='Output_Layer_weight',reg=None)
-                                               
+                 
+
+    def reset_parameters(self):
+        std = 1.0/np.sqrt(self.hidden_size)
+        for w in self.parameters():
+            w.data.normal_(mean = 0, std = std)                              
         
         
         
@@ -90,6 +97,8 @@ class TLSTM_UNIT(nn.Module):
     def forward(self,x, t, hidden, cell):
         """hidden and cell are previous hidden memory and cell state"""
         
+        # TODO: figure out what the weird output was 
+        do_dropout = self.training and self.dropout > 0.0
         T = self.time_delay(t)
         
         # if there is a time delay decompose by time delay
@@ -110,6 +119,12 @@ class TLSTM_UNIT(nn.Module):
         ct = (ft * cell) + (it * candidate_cell_mem)
         
         ht = o * self.tanh(ct)
+        
+        if do_dropout:
+            F.dropout(ht, p=self.dropout, training=self.training, inplace=True)
+        
+        
+        return ht, ct
         
         
         
