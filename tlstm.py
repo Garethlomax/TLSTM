@@ -7,10 +7,12 @@ This is a temporary script
 """
 
 import torch
-import torch.nn
+import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
-class TLSTM(nn.Module):
+
+# class TLSTM(nn.Module):
 
 
 class TLSTM_UNIT(nn.Module):
@@ -73,7 +75,7 @@ class TLSTM_UNIT(nn.Module):
         rules"""
         
         #TODO: do we actually need this to be a tensor??
-        if time_delay_type == 'log': 
+        if self.time_delay_type == 'log': 
             #TODO: redo this with pytorch constants ect to make static and faster
             
             T = 1 / np.log(np.e + t)
@@ -83,7 +85,7 @@ class TLSTM_UNIT(nn.Module):
             
             return T_vec
         
-        elif time_delay_type == 'reciprocal':
+        elif self.time_delay_type == 'reciprocal':
             
             T_vec = torch.full(self.hidden_size, fill_value = 1/ t)
             
@@ -118,7 +120,7 @@ class TLSTM_UNIT(nn.Module):
         
         ct = (ft * cell) + (it * candidate_cell_mem)
         
-        ht = o * self.tanh(ct)
+        ht = ot * self.tanh(ct)
         
         if do_dropout:
             F.dropout(ht, p=self.dropout, training=self.training, inplace=True)
