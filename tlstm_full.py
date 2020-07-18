@@ -141,12 +141,14 @@ class AE(nn.Module):
             #TODO: we may need to take x out of list ect.
             outputs[:,i,:] = x 
             
-            # we now reverse along the sequence lenght axis. 
-            # as justified by seq 2 seq models. 
             
-
+        # we now reverse along the sequence lenght axis. 
+        # as justified by seq 2 seq models.     
+        outputs = torch.flip(outputs, (1,))
         return outputs
-                
+        
+        
+    
             
             
         
